@@ -1,52 +1,81 @@
 import pytest
 import os
 import logging
-import requests
+import httpx
 
 
 URL = os.getenv("URL_PET_STORE_API") 
 
 
-def test_template_post():
+def test_positive_post(setup_sum_for_test):
+    
+    setup_sum_for_test.write("test")
+
     data = {
         'some_data': 'example'
                 }
     
-    response = requests.post(f'{URL}/some_locator', json=data)
+    response = httpx.post(f'{URL}/some_locator', json=data)
     logging.info("create some record")
-    assert response.status_code == 200, "record not create"
+    assert response.status_code == 201, "record not create"
     assert response.json()['some_data'] == 'example', "record dont have correct data"
 
 
-def test_template_get():
+def test_negative_post():
+    
+    data = {
+        'some_data': b'sum_wrong_type!'
+                }
+    
+    response = httpx.post(f'{URL}/some_locator', json=data)
+    assert response.status_code == 200
+    assert "Error: wrong_type for some_data" in response.text
+
+
+def test_positive_get():
     data = {
         'some_data': 'example'
                 }
     
-    create_response = requests.post(f'{URL}/some_locator', json=data)
+    create_response = httpx.post(f'{URL}/some_locator', json=data)
     logging.info("create some record")
 
     id = create_response.json()['id']
-    response = requests.get(f'{URL}/some_locator/{id}')
+    response = httpx.get(f'{URL}/some_locator/{id}')
     logging.info("get exist record")
     assert response.status_code == 200
     assert "example" in response.text
 
 
-def test_template_delete():
+def test_negative_get():
+    id = "not exist data"
+    response = httpx.get(f'{URL}/some_locator/{id}')
+    assert response.status_code == 404
+    assert "not exist data" in response.text
+
+
+def test_positive_delete():
     data = {
         'some_data': 'example'
               }
-    create_response = requests.post(f'{URL}/some_locator', json=data)
+    create_response = httpx.post(f'{URL}/some_locator', json=data)
     assert create_response.status_code == 200
     logging.info("create some record")
 
     id = create_response.json()['id']
     delete_url = f'{URL}/some_locator/{id}'
-    delete_response = requests.delete(delete_url)
+    delete_response = httpx.delete(delete_url)
     logging.info("delete exist record")
     assert delete_response.status_code == 200
 
-    get_response = requests.get(delete_url)
+    get_response = httpx.get(delete_url)
     logging.info("check record not exist")
-    assert get_response.status_code == 404
+    assert get_response.status_code == 404, f"record:{id}, shold be not exist"
+
+def test_negative_delete():
+   
+    id = "not exist id"
+    delete_url = f'{URL}/some_locator/{id}'
+    delete_response = httpx.delete(delete_url)
+    
+    assert delete_response.status_code == 404, f"record:{id}, shold be not exist"
