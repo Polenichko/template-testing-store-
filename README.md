@@ -1,2 +1,3 @@
-# template-testing-store-
-template testing store 
+Это простейший шаблон, с структой для тестирования api
+
+Если бы был реальный 

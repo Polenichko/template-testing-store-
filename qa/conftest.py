@@ -13,14 +13,7 @@ def _set_logging():
         filemode="w"
     )
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="function",autouse=True)
 def setup_sum_for_test():
-    print("for example open some file",
-          "of course it is better to do it through the context manager 'with'")
-    example_fille = open("qa/logs/temp.text", "w")
-
-    yield example_fille
-    
-    example_fille.close()
-    
-    
+    print("for example!")
+   
